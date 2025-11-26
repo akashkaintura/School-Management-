@@ -1,0 +1,128 @@
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Teacher Application
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Apply to join a school
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="space-y-6">
+
+                <!-- Personal Details -->
+                <div>
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">Personal Details</h3>
+                    <div class="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+
+                        <div class="sm:col-span-3">
+                            <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+                            <div class="mt-1">
+                                <input type="text" name="firstName" id="firstName" [(ngModel)]="teacherData.firstName"
+                                    required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+                            <div class="mt-1">
+                                <input type="text" name="lastName" id="lastName" [(ngModel)]="teacherData.lastName"
+                                    required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <div class="mt-1">
+                                <input type="email" name="email" id="email" [(ngModel)]="teacherData.email" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <div class="mt-1">
+                                <input type="text" name="phone" id="phone" [(ngModel)]="teacherData.phone" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Details -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">Professional Details</h3>
+                    <div class="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+
+                        <div class="sm:col-span-6">
+                            <label for="school" class="block text-sm font-medium text-gray-700">Select School</label>
+                            <div class="mt-1">
+                                <select id="school" name="school" [(ngModel)]="teacherData.schoolId" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                                    <option value="" disabled>Select a school</option>
+                                    <option *ngFor="let school of schools" [value]="school.id">
+                                        {{ school.name }} ({{ school.city }} - {{ school.board }})
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="qualification"
+                                class="block text-sm font-medium text-gray-700">Qualification</label>
+                            <div class="mt-1">
+                                <input type="text" name="qualification" id="qualification"
+                                    [(ngModel)]="teacherData.qualification" required
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label for="experience" class="block text-sm font-medium text-gray-700">Experience
+                                (Years)</label>
+                            <div class="mt-1">
+                                <input type="number" name="experience" id="experience"
+                                    [(ngModel)]="teacherData.experience" required min="0"
+                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subjects You Can Teach</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                <div *ngFor="let subject of availableSubjects" class="flex items-center">
+                                    <input type="checkbox" [id]="subject" [value]="subject"
+                                        (change)="onSubjectChange(subject, $event)"
+                                        class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                    <label [for]="subject" class="ml-2 block text-sm text-gray-900">
+                                        {{ subject }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="error" class="rounded-md bg-red-50 p-4">
+                    <div class="flex">
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit"
+                        [disabled]="!registerForm.form.valid || isLoading || teacherData.subjects.length === 0"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                        {{ isLoading ? 'Submitting...' : 'Submit Application' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

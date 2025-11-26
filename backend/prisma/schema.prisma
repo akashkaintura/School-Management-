@@ -17,6 +17,8 @@ model User {
   email               String               @unique
   password            String
   role                Role
+  schoolId            String?              // Multi-tenancy: User belongs to a School
+  school              School?              @relation(fields: [schoolId], references: [id])
   isActive            Boolean              @default(true)
   emailVerified       Boolean              @default(false)
   createdAt           DateTime             @default(now())
@@ -30,6 +32,7 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([schoolId])
 }
 
 enum Role {
@@ -39,6 +42,7 @@ enum Role {
   FINANCE
   PARENT
   ADMIN
+  SUPER_ADMIN // New Global Admin Role
 }
 
 model Profile {
@@ -70,23 +74,25 @@ enum Gender {
 // ==================== SCHOOL STRUCTURE ====================
 
 model School {
-  id              String   @id @default(cuid())
-  name            String
-  code            String   @unique
-  board           Board
-  address         String
-  city            String
-  state           String
-  pincode         String
-  phone           String
-  email           String
-  website         String?
-  principalName   String?
-  establishedYear Int?
-  logo            String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  classes         Class[]
+  id                  String               @id @default(cuid())
+  name                String
+  code                String               @unique
+  board               Board
+  address             String
+  city                String
+  state               String
+  pincode             String
+  phone               String
+  email               String
+  website             String?
+  principalName       String?
+  establishedYear     Int?
+  logo                String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  classes             Class[]
+  users               User[]               // Users belonging to this school
+  teacherApplications TeacherApplication[] // Applications for this school
 
   @@index([board])
 }
@@ -94,6 +100,8 @@ model School {
 enum Board {
   CBSE
   ICSE
+  IB
+  STATE_BOARD
 }
 
 model Class {
@@ -122,6 +130,7 @@ model Subject {
   id            String         @id @default(cuid())
   name          String
   code          String         @unique
+  board         Board?         // Subject specific to a board
   description   String?
   type          SubjectType    @default(CORE)
   createdAt     DateTime       @default(now())
@@ -130,6 +139,7 @@ model Subject {
   results       Result[]
 
   @@index([code])
+  @@index([board])
 }
 
 enum SubjectType {
@@ -155,6 +165,36 @@ model ClassSubject {
   @@index([classId])
   @@index([subjectId])
   @@index([teacherId])
+}
+
+// ==================== REGISTRATION ====================
+
+model TeacherApplication {
+  id             String            @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String
+  phone          String
+  schoolId       String
+  school         School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  subjects       String[]          // List of subjects they can teach
+  experience     Int               // Years of experience
+  qualification  String
+  resumeUrl      String?
+  status         ApplicationStatus @default(PENDING)
+  rejectionReason String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([schoolId])
+  @@index([status])
+  @@index([email])
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 // ==================== STUDENT & TEACHER ====================
@@ -383,6 +423,7 @@ model FeeStructure {
   class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
   feeName     String
   amount      Float
+  currency    Currency @default(INR)
   term        FeeTerm
   dueDate     DateTime
   isOptional  Boolean  @default(false)
@@ -403,11 +444,25 @@ enum FeeTerm {
   ONE_TIME
 }
 
+enum Currency {
+  INR  // Indian Rupee ₹
+  USD  // US Dollar $
+  EUR  // Euro €
+  GBP  // British Pound £
+  CNY  // Chinese Yuan ¥
+  JPY  // Japanese Yen ¥
+  IDR  // Indonesian Rupiah Rp
+  NPR  // Nepalese Rupee रू
+  AUD  // Australian Dollar $
+  CAD  // Canadian Dollar $
+}
+
 model FeePayment {
   id            String        @id @default(cuid())
   studentId     String
   student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   amount        Float
+  currency      Currency      @default(INR)
   feeType       String
   term          FeeTerm
   paymentDate   DateTime      @default(now())
