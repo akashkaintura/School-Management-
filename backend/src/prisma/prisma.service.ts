@@ -24,12 +24,14 @@ export class PrismaService
     if (process.env.NODE_ENV === 'production') return;
 
     // Delete in order to respect foreign key constraints
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const models = Reflect.ownKeys(this).filter(
       (key) => key[0] !== '_' && typeof key === 'string',
     );
 
     return Promise.all(
-      models.map((modelKey) => this[modelKey as string].deleteMany()),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      models.map((modelKey) => (this as any)[modelKey].deleteMany()),
     );
   }
 }
