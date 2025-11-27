@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GoogleLoginDto } from './dto/google-login.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
         private jwtService: JwtService,
         private configService: ConfigService,
         private prisma: PrismaService,
+        private emailService: EmailService,
     ) {
         this.googleClient = new OAuth2Client(
             this.configService.get<string>('GOOGLE_CLIENT_ID'),
@@ -49,8 +51,11 @@ export class AuthService {
                 const invitationToken = googleLoginDto.invitationToken;
 
                 if (!invitationToken) {
+                    // Send email to user informing them they need an invitation
+                    await this.emailService.sendInvitationRequiredEmail(email);
+
                     throw new UnauthorizedException(
-                        'You must be invited to join a school. Please contact your school administrator.',
+                        'You must be invited to join a school. Please contact your school administrator. We\'ve sent you an email with more information.',
                     );
                 }
 
