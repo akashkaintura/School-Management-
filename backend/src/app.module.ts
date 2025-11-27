@@ -18,6 +18,7 @@ import { SuperAdminModule } from './modules/super-admin/super-admin.module';
 import { RegistrationModule } from './modules/registration/registration.module';
 import { SchoolsModule } from './modules/schools/schools.module';
 import { SubjectsModule } from './modules/subjects/subjects.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SubjectsModule } from './modules/subjects/subjects.module';
     RegistrationModule,
     SchoolsModule,
     SubjectsModule,
+    InvitationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

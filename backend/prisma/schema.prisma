@@ -17,7 +17,7 @@ model User {
   email               String               @unique
   password            String
   role                Role
-  schoolId            String?              // Multi-tenancy: User belongs to a School
+  schoolId            String? // Multi-tenancy: User belongs to a School
   school              School?              @relation(fields: [schoolId], references: [id])
   isActive            Boolean              @default(true)
   emailVerified       Boolean              @default(false)
@@ -91,8 +91,9 @@ model School {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   classes             Class[]
-  users               User[]               // Users belonging to this school
+  users               User[] // Users belonging to this school
   teacherApplications TeacherApplication[] // Applications for this school
+  invitations         Invitation[] // Invitations for this school
 
   @@index([board])
 }
@@ -102,6 +103,35 @@ enum Board {
   ICSE
   IB
   STATE_BOARD
+}
+
+// ==================== INVITATION SYSTEM ====================
+
+model Invitation {
+  id        String           @id @default(cuid())
+  email     String
+  schoolId  String
+  school    School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  role      Role
+  invitedBy String // User ID who created the invitation
+  status    InvitationStatus @default(PENDING)
+  token     String           @unique @default(cuid())
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([email, schoolId])
+  @@index([email])
+  @@index([token])
+  @@index([status])
+  @@index([schoolId])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
 }
 
 model Class {
@@ -130,7 +160,7 @@ model Subject {
   id            String         @id @default(cuid())
   name          String
   code          String         @unique
-  board         Board?         // Subject specific to a board
+  board         Board? // Subject specific to a board
   description   String?
   type          SubjectType    @default(CORE)
   createdAt     DateTime       @default(now())
@@ -150,16 +180,16 @@ enum SubjectType {
 }
 
 model ClassSubject {
-  id         String   @id @default(cuid())
-  classId    String
-  class      Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  subjectId  String
-  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  teacherId  String
-  teacher    Teacher  @relation(fields: [teacherId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  timetable  Timetable[]
+  id        String      @id @default(cuid())
+  classId   String
+  class     Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   Teacher     @relation(fields: [teacherId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  timetable Timetable[]
 
   @@unique([classId, subjectId])
   @@index([classId])
@@ -170,21 +200,21 @@ model ClassSubject {
 // ==================== REGISTRATION ====================
 
 model TeacherApplication {
-  id             String            @id @default(cuid())
-  firstName      String
-  lastName       String
-  email          String
-  phone          String
-  schoolId       String
-  school         School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  subjects       String[]          // List of subjects they can teach
-  experience     Int               // Years of experience
-  qualification  String
-  resumeUrl      String?
-  status         ApplicationStatus @default(PENDING)
+  id              String            @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String
+  phone           String
+  schoolId        String
+  school          School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  subjects        String[] // List of subjects they can teach
+  experience      Int // Years of experience
+  qualification   String
+  resumeUrl       String?
+  status          ApplicationStatus @default(PENDING)
   rejectionReason String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@index([schoolId])
   @@index([status])
@@ -200,20 +230,20 @@ enum ApplicationStatus {
 // ==================== STUDENT & TEACHER ====================
 
 model Student {
-  id              String        @id @default(cuid())
-  userId          String        @unique
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rollNumber      String        @unique
-  admissionNumber String        @unique
+  id              String       @id @default(cuid())
+  userId          String       @unique
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rollNumber      String       @unique
+  admissionNumber String       @unique
   classId         String
-  class           Class         @relation(fields: [classId], references: [id])
+  class           Class        @relation(fields: [classId], references: [id])
   admissionDate   DateTime
   bloodGroup      String?
   parentId        String?
-  parent          Parent?       @relation(fields: [parentId], references: [id])
+  parent          Parent?      @relation(fields: [parentId], references: [id])
   emergencyPhone  String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
   attendances     Attendance[]
   results         Result[]
   feePayments     FeePayment[]
@@ -226,20 +256,20 @@ model Student {
 }
 
 model Teacher {
-  id            String         @id @default(cuid())
-  userId        String         @unique
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  employeeId    String         @unique
-  qualification String
-  experience    Int? // years
-  joiningDate   DateTime
+  id             String         @id @default(cuid())
+  userId         String         @unique
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeId     String         @unique
+  qualification  String
+  experience     Int? // years
+  joiningDate    DateTime
   specialization String?
-  salary        Float?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  classSubjects ClassSubject[]
-  attendances   Attendance[]
-  exams         Exam[]
+  salary         Float?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  classSubjects  ClassSubject[]
+  attendances    Attendance[]
+  exams          Exam[]
 
   @@index([userId])
   @@index([employeeId])
@@ -328,16 +358,16 @@ enum MeetingStatus {
 }
 
 model MeetingParticipant {
-  id          String              @id @default(cuid())
-  meetingId   String
-  meeting     Meeting             @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role        ParticipantRole     @default(ATTENDEE)
-  status      ParticipantStatus   @default(PENDING)
-  joinedAt    DateTime?
-  leftAt      DateTime?
-  createdAt   DateTime            @default(now())
+  id        String            @id @default(cuid())
+  meetingId String
+  meeting   Meeting           @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      ParticipantRole   @default(ATTENDEE)
+  status    ParticipantStatus @default(PENDING)
+  joinedAt  DateTime?
+  leftAt    DateTime?
+  createdAt DateTime          @default(now())
 
   @@unique([meetingId, userId])
   @@index([meetingId])
@@ -359,23 +389,23 @@ enum ParticipantStatus {
 // ==================== EXAMS & RESULTS ====================
 
 model Exam {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  type        ExamType
-  classId     String
-  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  startDate   DateTime
-  endDate     DateTime
-  totalMarks  Float
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  type         ExamType
+  classId      String
+  class        Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  startDate    DateTime
+  endDate      DateTime
+  totalMarks   Float
   passingMarks Float
   academicYear String
-  conductedBy String
-  teacher     Teacher  @relation(fields: [conductedBy], references: [id])
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  results     Result[]
+  conductedBy  String
+  teacher      Teacher  @relation(fields: [conductedBy], references: [id])
+  isPublished  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  results      Result[]
 
   @@index([classId])
   @@index([type])
@@ -445,16 +475,16 @@ enum FeeTerm {
 }
 
 enum Currency {
-  INR  // Indian Rupee ₹
-  USD  // US Dollar $
-  EUR  // Euro €
-  GBP  // British Pound £
-  CNY  // Chinese Yuan ¥
-  JPY  // Japanese Yen ¥
-  IDR  // Indonesian Rupiah Rp
-  NPR  // Nepalese Rupee रू
-  AUD  // Australian Dollar $
-  CAD  // Canadian Dollar $
+  INR // Indian Rupee ₹
+  USD // US Dollar $
+  EUR // Euro €
+  GBP // British Pound £
+  CNY // Chinese Yuan ¥
+  JPY // Japanese Yen ¥
+  IDR // Indonesian Rupiah Rp
+  NPR // Nepalese Rupee रू
+  AUD // Australian Dollar $
+  CAD // Canadian Dollar $
 }
 
 model FeePayment {
@@ -526,20 +556,20 @@ enum DayOfWeek {
 }
 
 model Assignment {
-  id          String           @id @default(cuid())
-  title       String
-  description String
-  dueDate     DateTime
-  totalMarks  Float
-  status      AssignmentStatus @default(PENDING)
-  studentId   String
-  student     Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  submittedAt DateTime?
+  id            String           @id @default(cuid())
+  title         String
+  description   String
+  dueDate       DateTime
+  totalMarks    Float
+  status        AssignmentStatus @default(PENDING)
+  studentId     String
+  student       Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  submittedAt   DateTime?
   marksObtained Float?
-  feedback    String?
-  attachments String[] // Array of URLs
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  feedback      String?
+  attachments   String[] // Array of URLs
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   @@index([studentId])
   @@index([status])
@@ -578,18 +608,18 @@ enum NotificationType {
 }
 
 model Announcement {
-  id          String            @id @default(cuid())
+  id          String           @id @default(cuid())
   title       String
   content     String
   type        AnnouncementType
-  priority    Priority          @default(NORMAL)
+  priority    Priority         @default(NORMAL)
   targetRole  Role?
-  isActive    Boolean           @default(true)
-  publishedAt DateTime          @default(now())
+  isActive    Boolean          @default(true)
+  publishedAt DateTime         @default(now())
   expiresAt   DateTime?
   attachments String[] // Array of URLs
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@index([publishedAt])
   @@index([isActive])
@@ -610,4 +640,3 @@ enum Priority {
   HIGH
   URGENT
 }
-
