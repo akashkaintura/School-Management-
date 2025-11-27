@@ -57,7 +57,6 @@ Thumbs.db
 .vercel
 
 # Package manager
-pnpm-lock.yaml
 yarn.lock
 package-lock.json
 
