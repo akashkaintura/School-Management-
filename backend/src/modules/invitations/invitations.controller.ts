@@ -5,16 +5,13 @@ import {
     Body,
     Param,
     Delete,
-    UseGuards,
     Request,
 } from '@nestjs/common';
 import { InvitationsService } from './invitations.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SchoolId } from '../../decorators/school-id.decorator';
 
 @Controller('api/invitations')
-@UseGuards(JwtAuthGuard)
 export class InvitationsController {
     constructor(private readonly invitationsService: InvitationsService) { }
 
