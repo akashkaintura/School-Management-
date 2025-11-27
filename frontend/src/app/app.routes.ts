@@ -119,6 +119,12 @@ export const routes: Routes = [
         data: { roles: ['PRINCIPAL'] }
     },
     {
+        path: 'invitations',
+        loadComponent: () => import('./pages/invitations/invitations.component').then(m => m.InvitationsComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['PRINCIPAL', 'ADMIN'] }
+    },
+    {
         path: 'subject-management',
         loadComponent: () => import('./pages/subject-management/subject-management.component').then(m => m.SubjectManagementComponent),
         canActivate: [authGuard, roleGuard],

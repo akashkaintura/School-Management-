@@ -21,8 +21,12 @@ export class AuthService {
 
     constructor(private http: HttpClient) { }
 
-    googleLogin(token: string): Observable<AuthResponse> {
-        return this.http.post<AuthResponse>(`${this.apiUrl}/auth/google`, { token });
+    googleLogin(token: string, invitationToken?: string | null): Observable<AuthResponse> {
+        const body: any = { token };
+        if (invitationToken) {
+            body.invitationToken = invitationToken;
+        }
+        return this.http.post<AuthResponse>(`${this.apiUrl}/auth/google`, body);
     }
 
     saveToken(token: string): void {

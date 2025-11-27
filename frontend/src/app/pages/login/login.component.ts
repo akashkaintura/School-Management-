@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
@@ -15,9 +15,19 @@ declare const google: any;
 })
 export class LoginComponent implements OnInit {
     private router = inject(Router);
+    private route = inject(ActivatedRoute);
     private authService = inject(AuthService);
+    private invitationToken: string | null = null;
 
     ngOnInit() {
+        // Get invitation token from URL if present
+        this.route.queryParams.subscribe(params => {
+            this.invitationToken = params['token'] || null;
+            if (this.invitationToken) {
+                console.log('Invitation token detected:', this.invitationToken);
+            }
+        });
+
         this.initializeGoogleSignIn();
     }
 
@@ -43,8 +53,8 @@ export class LoginComponent implements OnInit {
     handleCredentialResponse(response: any) {
         console.log('Received Google token');
 
-        // Send token to backend
-        this.authService.googleLogin(response.credential).subscribe({
+        // Send token to backend with invitation token if present
+        this.authService.googleLogin(response.credential, this.invitationToken).subscribe({
             next: (authResponse) => {
                 console.log('Login successful:', authResponse);
                 this.authService.saveToken(authResponse.accessToken);
@@ -53,6 +63,9 @@ export class LoginComponent implements OnInit {
                 // Redirect based on role
                 const role = authResponse.user.role;
                 switch (role) {
+                    case 'SUPER_ADMIN':
+                        this.router.navigate(['/super-admin-dashboard']);
+                        break;
                     case 'STUDENT':
                         this.router.navigate(['/student-dashboard']);
                         break;
@@ -74,7 +87,7 @@ export class LoginComponent implements OnInit {
             },
             error: (error) => {
                 console.error('Login failed:', error);
-                alert('Login failed. Please try again.');
+                alert(error.error?.message || 'Login failed. Please try again.');
             }
         });
     }
