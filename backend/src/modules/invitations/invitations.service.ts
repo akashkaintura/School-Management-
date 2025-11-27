@@ -7,10 +7,14 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { InvitationStatus } from '@prisma/client';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class InvitationsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private emailService: EmailService,
+    ) { }
 
     async createInvitation(
         schoolId: string,
@@ -70,8 +74,13 @@ export class InvitationsService {
             },
         });
 
-        // TODO: Send invitation email
-        // await this.emailService.sendInvitation(invitation);
+        // Send invitation email
+        await this.emailService.sendInvitationEmail(
+            invitation.email,
+            invitation.token,
+            invitation.school.name,
+            invitation.role,
+        );
 
         return invitation;
     }

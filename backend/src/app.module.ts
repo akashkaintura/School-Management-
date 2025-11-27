@@ -19,6 +19,7 @@ import { RegistrationModule } from './modules/registration/registration.module';
 import { SchoolsModule } from './modules/schools/schools.module';
 import { SubjectsModule } from './modules/subjects/subjects.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
       envFilePath: '.env',
     }),
     PrismaModule,
+    EmailModule,
     AuthModule,
     UsersModule,
     StudentsModule,
