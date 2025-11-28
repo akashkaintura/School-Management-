@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InvitationService, Invitation, CreateInvitationDto } from '../../services/invitation.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
     selector: 'app-invitations',
@@ -31,7 +32,10 @@ export class InvitationsComponent implements OnInit {
         { value: 'FINANCE', label: 'Finance' }
     ];
 
-    constructor(private invitationService: InvitationService) { }
+    constructor(
+        private invitationService: InvitationService,
+        private toastService: ToastService
+    ) { }
 
     ngOnInit() {
         this.loadInvitations();
@@ -75,12 +79,11 @@ export class InvitationsComponent implements OnInit {
                 this.invitations.unshift(invitation);
                 this.closeModal();
                 this.loading = false;
-                // Show success message
-                alert('Invitation created successfully!');
+                this.toastService.success('Invitation created successfully!');
             },
             error: (error) => {
                 console.error('Error creating invitation:', error);
-                alert(error.error?.message || 'Failed to create invitation');
+                this.toastService.error(error.error?.message || 'Failed to create invitation');
                 this.loading = false;
             }
         });
@@ -99,11 +102,11 @@ export class InvitationsComponent implements OnInit {
     resendInvitation(id: string) {
         this.invitationService.resendInvitation(id).subscribe({
             next: () => {
-                alert('Invitation resent successfully!');
+                this.toastService.success('Invitation resent successfully!');
             },
             error: (error) => {
                 console.error('Error resending invitation:', error);
-                alert('Failed to resend invitation');
+                this.toastService.error('Failed to resend invitation');
             }
         });
     }
@@ -116,11 +119,11 @@ export class InvitationsComponent implements OnInit {
         this.invitationService.revokeInvitation(id).subscribe({
             next: () => {
                 this.loadInvitations();
-                alert('Invitation revoked successfully!');
+                this.toastService.success('Invitation revoked successfully!');
             },
             error: (error) => {
                 console.error('Error revoking invitation:', error);
-                alert('Failed to revoke invitation');
+                this.toastService.error('Failed to revoke invitation');
             }
         });
     }

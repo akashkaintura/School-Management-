@@ -3,6 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 declare const google: any;
 
@@ -17,6 +18,7 @@ export class LoginComponent implements OnInit {
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private authService = inject(AuthService);
+    private toastService = inject(ToastService);
     private invitationToken: string | null = null;
 
     ngOnInit() {
@@ -87,7 +89,7 @@ export class LoginComponent implements OnInit {
             },
             error: (error) => {
                 console.error('Login failed:', error);
-                alert(error.error?.message || 'Login failed. Please try again.');
+                this.toastService.error(error.error?.message || 'Login failed. Please try again.');
             }
         });
     }
